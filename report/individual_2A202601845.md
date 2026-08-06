@@ -118,7 +118,7 @@ python -m src.pipelines.corruption_flow
 ## 7. Hiểu biết về luồng end-to-end
 
 1. **Dữ liệu đi từ Crossref đến vector index như thế nào?**
-   - Crossref REST API trả về JSON thô $\rightarrow$ `crossref.py` lưu raw snapshot $\rightarrow$ `cleaning.py` lọc bản ghi rác, làm sạch HTML, tính `age_days` và tạo chuỗi `text_for_embedding` $\rightarrow$ `index.py` dùng mô hình `all-MiniLM-L6-v2` chuyển chuỗi văn bản thành Vector 384 chiều và nạp vào cơ sở dữ liệu ChromaDB.
+   - Crossref REST API trả về JSON thô $\rightarrow$ `crossref.py` lưu raw snapshot $\rightarrow$ `cleaning.py` lọc rác, chuẩn hóa text & tạo `text_for_embedding` $\rightarrow$ `index.py` dùng mô hình `all-MiniLM-L6-v2` chuyển chuỗi văn bản thành Vector 384 chiều và nạp vào cơ sở dữ liệu ChromaDB.
 
 2. **Evaluation set và ground-truth document IDs dùng để đo retrieval/answer quality ra sao?**
    - Với mỗi câu hỏi trong `test_set.json`, RAG Agent tìm kiếm top-k tài liệu trong ChromaDB (`retrieved_doc_ids`). Nếu bất kỳ ID nào nằm trong `ground_truth_doc_ids`, `retrieval_hit` được tính là `True`. Đáp án sinh ra được so sánh từ vựng (Token F1) và chấm điểm ngữ nghĩa bởi LLM Judge (thang điểm 1-5).
@@ -146,7 +146,7 @@ python -m src.pipelines.corruption_flow
 | `judge_accuracy` | **`97.50%`** | **`57.50%`** | **`72.50%`** | Tỷ lệ câu trả lời đạt điểm tối đa của LLM Judge bị sụt giảm mạnh khi dữ liệu bị làm nhiễu. |
 | `mean_judge_score` | **`4.90 / 5`** | **`3.45 / 5`** | **`3.90 / 5`** | Điểm số đánh giá ngữ nghĩa trung bình của Giám khảo LLM bị giảm 1.45 điểm khi gặp dữ liệu xấu. |
 | Quality checks | **`PASS`** | **`FAIL`** | **`PASS`** | Quality Engine cảnh báo chính xác màu đỏ ngay khi phát hiện các hàng bị thiếu summary hoặc trùng ID. |
-| Freshness status | **`FRESH`** | **`STALE`** | **`FRESH`** | Freshness Engine tự động chuyển sang `STALE` khi phát hiện 2 bản ghi bị sửa ngày về quá khứ xa. |
+| Freshness status | **`FRESH`** | **`STALE`** | **`FRESH`** | Freshness Engine tự động chuyển sang `STALE` khi phát hiện 2 bản ghi bị sửa ngày về quá khứ. |
 
 ### Kết luận từ số liệu
 
