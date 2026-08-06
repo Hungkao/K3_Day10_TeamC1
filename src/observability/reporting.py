@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from core.utils import write_text
+
 
 def generate_phase1_report(
     report_path: str | Path,
