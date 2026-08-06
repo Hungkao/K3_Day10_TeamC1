@@ -21,6 +21,16 @@ class SearchResult:
     metadata: dict[str, Any]
 
 
+_CHROMA_CLIENT_CACHE: dict[str, chromadb.ClientAPI] = {}
+
+
+def _get_chroma_client(persist_path: Path) -> chromadb.ClientAPI:
+    path_str = str(persist_path.resolve())
+    if path_str not in _CHROMA_CLIENT_CACHE:
+        _CHROMA_CLIENT_CACHE[path_str] = chromadb.PersistentClient(path=path_str)
+    return _CHROMA_CLIENT_CACHE[path_str]
+
+
 class LocalEmbeddingIndex:
     def __init__(
         self,
@@ -35,7 +45,7 @@ class LocalEmbeddingIndex:
         self.persist_path = persist_path
         self.embedding_backend = "chroma"
         self.embedding_model = MiniLMEmbeddings(settings.embedding_model)
-        self.client = chromadb.PersistentClient(path=str(persist_path))
+        self.client = _get_chroma_client(persist_path)
         self.collection = self.client.get_collection(name=collection_name)
         self.documents_by_paper_id = {document["paper_id"].lower(): document for document in documents}
         self.documents_by_title = {document["title"].lower(): document for document in documents}
@@ -93,7 +103,7 @@ class LocalEmbeddingIndex:
         persist_path.mkdir(parents=True, exist_ok=True)
 
         embedding_model = MiniLMEmbeddings(settings.embedding_model)
-        client = chromadb.PersistentClient(path=str(persist_path))
+        client = _get_chroma_client(persist_path)
         try:
             client.delete_collection(name=collection_name)
         except Exception:
@@ -135,7 +145,7 @@ class LocalEmbeddingIndex:
             settings=settings,
             collection_name=payload["collection_name"],
             documents=payload["documents"],
-            persist_path=Path(payload["persist_path"]),
+            persist_path=settings.paths.chroma_dir,
         )
 
     def search(self, query: str, top_k: int | None = None) -> list[SearchResult]:
