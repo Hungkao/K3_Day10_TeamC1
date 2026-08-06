@@ -30,9 +30,11 @@ class EvaluationBundle:
     answers: list[dict[str, Any]]
 
 
-def _token_f1(reference: str, prediction: str) -> float:
-    ref_tokens = normalize_whitespace(reference).lower().split()
-    pred_tokens = normalize_whitespace(prediction).lower().split()
+def _token_f1(reference: Any, prediction: Any) -> float:
+    ref_str = str(reference) if reference is not None and not (isinstance(reference, float) and reference != reference) else ""
+    pred_str = str(prediction) if prediction is not None and not (isinstance(prediction, float) and prediction != prediction) else ""
+    ref_tokens = normalize_whitespace(ref_str).lower().split()
+    pred_tokens = normalize_whitespace(pred_str).lower().split()
     if not ref_tokens or not pred_tokens:
         return 0.0
     ref_set = set(ref_tokens)
@@ -45,13 +47,15 @@ def _token_f1(reference: str, prediction: str) -> float:
     return 2 * precision * recall / (precision + recall)
 
 
-def _judge_answer(settings: Settings, question: str, reference: str, prediction: str) -> JudgeVerdict:
+def _judge_answer(settings: Settings, question: str, reference: Any, prediction: Any) -> JudgeVerdict:
+    ref_str = str(reference) if reference is not None else ""
+    pred_str = str(prediction) if prediction is not None else ""
     prompt = f"""
 Evaluate the model answer against the reference answer.
 
 Question: {question}
-Reference answer: {reference}
-Model answer: {prediction}
+Reference answer: {ref_str}
+Model answer: {pred_str}
 
 Return:
 - score from 1 to 5
@@ -62,12 +66,13 @@ Return:
         llm = build_llm(settings=settings, temperature=0.0).with_structured_output(JudgeVerdict)
         return llm.invoke(prompt)
     except Exception:
-        score = 5 if _token_f1(reference, prediction) >= 0.95 else 3 if _token_f1(reference, prediction) >= 0.5 else 1
+        score = 5 if _token_f1(ref_str, pred_str) >= 0.95 else 3 if _token_f1(ref_str, pred_str) >= 0.5 else 1
         return JudgeVerdict(
             score=score,
             correct=score >= 3,
             reasoning="Fallback heuristic judge used because the LLM evaluator was unavailable.",
         )
+
 
 
 def _run_ragas(settings: Settings, answers: list[dict[str, Any]]) -> dict[str, Any]:
