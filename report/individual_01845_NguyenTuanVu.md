@@ -9,7 +9,7 @@
 | **Khóa/Lớp** | Cohort K3 |
 | **Tên nhóm** | Team C1 |
 | **Vai trò chính** | Evaluation & Observability Owner (Vai trò 4) |
-| **Repository** | `c:\AI20K\LABS\K3_Day10_TeamC1` |
+| **Repository** | `https://github.com/Hungkao/K3_Day10_TeamC1/tree/feature/vunt-eval-observability` |
 | **Ngày hoàn thành** | 2026-08-06 |
 
 ---
