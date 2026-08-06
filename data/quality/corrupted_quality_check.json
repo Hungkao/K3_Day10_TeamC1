@@ -1,0 +1,43 @@
+{
+  "report_name": "corrupted_quality_check",
+  "status": "FAIL",
+  "all_passed": false,
+  "total_rows": 23,
+  "checks": [
+    {
+      "check": "row_count",
+      "passed": true,
+      "details": "Total rows: 23"
+    },
+    {
+      "check": "paper_id_integrity",
+      "passed": false,
+      "details": "Null IDs: 0, Duplicate IDs: 2"
+    },
+    {
+      "check": "title_non_null",
+      "passed": true,
+      "details": "Null titles: 0"
+    },
+    {
+      "check": "summary_quality",
+      "passed": false,
+      "details": "Missing summaries: 5, Short summaries (<100 chars): 5"
+    },
+    {
+      "check": "freshness_threshold",
+      "passed": false,
+      "details": "Stale rows (> 180 days): 2"
+    }
+  ],
+  "metrics": {
+    "total_rows": 23,
+    "paper_id_null_count": 0,
+    "duplicate_paper_id_count": 2,
+    "missing_title_count": 0,
+    "missing_summary_count": 5,
+    "short_summary_count": 5,
+    "stale_row_count": 2,
+    "freshness_threshold_days": 180
+  }
+}
