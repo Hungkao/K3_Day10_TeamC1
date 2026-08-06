@@ -43,14 +43,17 @@ def answer_question(question: str, settings: Settings, index: LocalEmbeddingInde
         )
         deduped = [exact_result] + [item for item in retrieved if item.paper_id != exact_result.paper_id]
         retrieved = deduped[: (top_k or settings.top_k)]
-    if not retrieved:
+    
+    # Groundedness Check: If score is too low (< 0.20) or retrieved is empty, refrain from guessing
+    if not retrieved or (not exact and retrieved[0].score < 0.20):
         answer = "I don't know from the indexed corpus."
     else:
         answer = _extract_answer(question, retrieved[0])
     return AnswerResult(
         question=question,
         answer=answer,
-        retrieved_doc_ids=[item.paper_id for item in retrieved],
-        retrieved_contexts=[item.content for item in retrieved],
-        retrieved_titles=[item.title for item in retrieved],
+        retrieved_doc_ids=[item.paper_id for item in retrieved] if answer != "I don't know from the indexed corpus." else [],
+        retrieved_contexts=[item.content for item in retrieved] if answer != "I don't know from the indexed corpus." else [],
+        retrieved_titles=[item.title for item in retrieved] if answer != "I don't know from the indexed corpus." else [],
     )
+
