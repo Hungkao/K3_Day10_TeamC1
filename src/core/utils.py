@@ -34,8 +34,11 @@ def now_utc() -> datetime:
     return datetime.now(UTC)
 
 
-def normalize_whitespace(value: str) -> str:
-    return re.sub(r"\s+", " ", value).strip()
+def normalize_whitespace(value: Any) -> str:
+    if value is None or (isinstance(value, float) and value != value):
+        return ""
+    return re.sub(r"\s+", " ", str(value)).strip()
+
 
 
 def safe_slug(value: str) -> str:

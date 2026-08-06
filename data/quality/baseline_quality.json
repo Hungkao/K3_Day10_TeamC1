@@ -1,5 +1,5 @@
 {
-  "report_name": "baseline_quality_check",
+  "report_name": "baseline_quality",
   "status": "PASS",
   "all_passed": true,
   "total_rows": 24,

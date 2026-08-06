@@ -128,3 +128,9 @@ def build_clean_dataframe(records: list[PaperRecord], run_date: datetime) -> pd.
 
     return clean_df
 
+
+def load_cleaned_dataframe(path: Any) -> pd.DataFrame:
+    """Loads a cleaned DataFrame from CSV file path."""
+    return pd.read_csv(path)
+
+
