@@ -19,14 +19,14 @@ class AnswerResult:
 
 def _extract_answer(question: str, top_result: SearchResult) -> str:
     lowered = question.lower()
-    metadata = top_result.metadata
+    metadata = top_result.metadata or {}
     if "who authored" in lowered or "list the authors" in lowered:
-        return metadata["authors_joined"]
+        return str(metadata.get("authors_joined", ""))
     if "when was" in lowered or "publication date" in lowered or "published on" in lowered:
-        return metadata["published"]
+        return str(metadata.get("published", ""))
     if "what categories" in lowered:
-        return metadata["categories_joined"]
-    return first_sentence(metadata["summary"])
+        return str(metadata.get("categories_joined", ""))
+    return first_sentence(str(metadata.get("summary", "")))
 
 
 def answer_question(question: str, settings: Settings, index: LocalEmbeddingIndex, top_k: int | None = None) -> AnswerResult:
@@ -49,11 +49,15 @@ def answer_question(question: str, settings: Settings, index: LocalEmbeddingInde
         answer = "I don't know from the indexed corpus."
     else:
         answer = _extract_answer(question, retrieved[0])
+
+    retrieved_doc_ids = [item.paper_id for item in retrieved]
+    retrieved_contexts = [item.content for item in retrieved]
+    retrieved_titles = [item.title for item in retrieved]
+
     return AnswerResult(
         question=question,
         answer=answer,
-        retrieved_doc_ids=[item.paper_id for item in retrieved] if answer != "I don't know from the indexed corpus." else [],
-        retrieved_contexts=[item.content for item in retrieved] if answer != "I don't know from the indexed corpus." else [],
-        retrieved_titles=[item.title for item in retrieved] if answer != "I don't know from the indexed corpus." else [],
+        retrieved_doc_ids=retrieved_doc_ids,
+        retrieved_contexts=retrieved_contexts,
+        retrieved_titles=retrieved_titles,
     )
-

@@ -1,7 +1,8 @@
 {
   "report_name": "corrupted_quality_check",
-  "total_rows": 23,
+  "status": "FAIL",
   "all_passed": false,
+  "total_rows": 23,
   "checks": [
     {
       "check": "row_count",
@@ -21,12 +22,22 @@
     {
       "check": "summary_quality",
       "passed": false,
-      "details": "Short/empty summaries (<10 chars): 5"
+      "details": "Missing summaries: 5, Short summaries (<100 chars): 5"
     },
     {
       "check": "freshness_threshold",
       "passed": false,
       "details": "Stale rows (> 180 days): 2"
     }
-  ]
+  ],
+  "metrics": {
+    "total_rows": 23,
+    "paper_id_null_count": 0,
+    "duplicate_paper_id_count": 2,
+    "missing_title_count": 0,
+    "missing_summary_count": 5,
+    "short_summary_count": 5,
+    "stale_row_count": 2,
+    "freshness_threshold_days": 180
+  }
 }

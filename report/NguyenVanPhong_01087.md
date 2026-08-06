@@ -25,7 +25,8 @@
 | **Data Lineage & Traceability** | Inspection & Index verification | `papers_clean.csv` | - Chroma Collection `papers-baseline` (24 docs)<br>- Traceability report | **Hoàn thành (CP2)** |
 | **Data Quality & Observability** | `src/observability/quality.py`<br>- `run_data_quality_checks`<br>- `build_freshness_report` | `papers_clean.csv`, `Settings` | - `data/quality/baseline_quality_check.json`<br>- `data/quality/freshness_report.json` | **Hoàn thành (CP3)** |
 | **Corruption Scenario Planning** | `src/ingestion/corruption.py` | `papers_clean.csv` | - Recovery point `crossref_records.json`<br>- 6 kịch bản gây lỗi dữ liệu | **Hoàn thành (CP4)** |
-| **Data Corruption & Repair** | `src/ingestion/corruption.py` | `papers_clean.csv` | - Corrupted clean dataframe<br>- Repaired dataset từ raw source | **Sẵn sàng (CP5 - CP6)** |
+| **Data Corruption & Measurement** | `src/ingestion/corruption.py` | `papers_clean.csv` | - `papers_clean_corrupted.csv` (23 rows)<br>- `corruption_log.json` (13 events)<br>- `corrupted_quality_check.json` | **Hoàn thành (CP5)** |
+| **Data Repair & Comparison** | `src/ingestion/cleaning.py`<br>`src/ingestion/crossref.py` | `crossref_records.json` | - `papers_clean_repaired.csv` (24 rows)<br>- `repaired_quality_check.json` | **Hoàn thành (CP6)** |
 
 ---
 
@@ -76,32 +77,7 @@
   - `baseline_quality_check.json`: 100% PASS (5/5 checks: row_count, paper_id_integrity, title_non_null, summary_quality, freshness_threshold).
   - `freshness_report.json`: `latest_published: 2026-08-05`, `oldest_published: 2026-02-12`, `stale_rows: 0 / 24`, `is_fresh: True`.
 
----
-
-### Kế hoạch hành động các Checkpoint tiếp theo
-
-```
-           ┌─────────────────────────────────────────┐
-           │ CP4: Break & Scenario Planning          │
-           │ - Xác định kịch bản corrupt dữ liệu     │
-           └────────────────────┬────────────────────┘
-                                │
-           ┌────────────────────▼────────────────────┐
-           │ CP5: Data Corruption & Measurement      │
-           │ - Implement corrupt_clean_dataframe     │
-           │ - Tạo papers_clean_corrupted.csv        │
-           │ - Đo mức sụt giảm hit rate & F1 score   │
-           └────────────────────┬────────────────────┘
-                                │
-           ┌────────────────────▼────────────────────┐
-           │ CP6: Data Repair & Comparison Report    │
-           │ - Re-clean từ raw snapshot nguồn gốc   │
-           │ - Tạo papers_clean_repaired.csv         │
-           │ - Đo mức phục hồi metrics & xuất report │
-           └─────────────────────────────────────────┘
-```
-
-### CHECKPOINT 4: Nghỉ 15 phút & Chuẩn bị Corruption Scenario (02:00 – 02:15)
+### CHECKPOINT 4: Chuẩn bị Kịch bản Corruption Scenario (02:00 – 02:15)
 - **Công việc đã làm**:
   1. Xác định `data/raw/crossref_records.json` làm điểm khôi phục nguồn nguyên bản (Raw Source Recovery Point).
   2. Lên kịch bản gây lỗi dữ liệu sạch có chủ đích trong `src/ingestion/corruption.py`:
@@ -113,15 +89,19 @@
      - Thêm 2 dòng bị trùng lặp (`duplicate_row`).
   3. Bảo vệ tập dữ liệu baseline nguyên vẹn, chuẩn bị thực thi ở CP5.
 
----
+### CHECKPOINT 5: Data Corruption có kiểm soát & Đo Impact (02:15 – 03:15)
+- **Công việc đã làm**:
+  1. Triển khai thành công `corrupt_clean_dataframe()` trong `src/ingestion/corruption.py`.
+  2. Tạo các tập dữ liệu bị biến đổi: `data/clean/papers_clean_corrupted.csv` và `data/clean/papers_clean_corrupted.json`.
+  3. Ghi file nhật ký `data/results/corruption_log.json` lưu vết 13 sự kiện biến đổi dữ liệu.
+  4. Kiểm tra Observability chất lượng dữ liệu: Trả về **`all_passed = False`** (Cảnh báo lặp ID, rỗng tóm tắt và stale date).
 
-### Kế hoạch hành động các Checkpoint tiếp theo
-
-#### CHECKPOINT 5: Corruption có kiểm soát & Đo Impact (02:15 – 03:15)
-- **Mục tiêu**: Thực thi `corrupt_clean_dataframe` tạo `papers_clean_corrupted.csv` và `corruption_log.json`, đo đạc sự sụt giảm chất lượng của RAG Agent và Quality Observability.
-
-#### CHECKPOINT 6: Repair từ Raw, Comparison & Final Demo (03:15 – 04:00)
-- **Mục tiêu**: Khôi phục dữ liệu sạch từ raw snapshot ban đầu, tạo `papers_clean_repaired.csv`, đo đạc mức độ phục hồi của RAG Agent và xuất báo cáo so sánh 3 trạng thái.
+### CHECKPOINT 6: Data Repair từ Raw Snapshot & Comparison (03:15 – 04:00)
+- **Công việc đã làm**:
+  1. Nạp lại snapshot nguyên bản `data/raw/crossref_records.json`.
+  2. Tái chạy quy trình `build_clean_dataframe()` tạo tập dữ liệu đã khôi phục `data/clean/papers_clean_repaired.csv` (không copy/sửa tay từ baseline).
+  3. Phục hồi 100% các bài bị drop hoặc corrupt (`10.2118/234689-pa`, `10.1007/s10278-026-02086-9`, `10.1111/exsy.70341`).
+  4. Chạy lại Data Quality Observability: **`100% PASS` (5/5 checks)**.
 
 ---
 
@@ -188,12 +168,12 @@ Crossref API trả về dữ liệu thô dạng JSON hỗn hợp chứa nhiều 
 
 | Metric / Signal | Baseline (CP3) | Corrupted (CP5) | Repaired (CP6) | Nhận xét của cá nhân |
 | --- | ---: | ---: | ---: | --- |
-| `retrieval_hit_rate` | *[Đang chờ CP3]* | *[Đang chờ CP5]* | *[Đang chờ CP6]* | Đánh giá khả năng tìm đúng tài liệu |
-| `mean_token_f1` | *[Đang chờ CP3]* | *[Đang chờ CP5]* | *[Đang chờ CP6]* | Đánh giá độ trùng khớp câu trả lời |
-| `judge_accuracy` | *[Đang chờ CP3]* | *[Đang chờ CP5]* | *[Đang chờ CP6]* | Đánh giá từ LLM Judge |
-| `mean_judge_score` | *[Đang chờ CP3]* | *[Đang chờ CP5]* | *[Đang chờ CP6]* | Điểm trung bình judge |
-| Data Quality Checks | **Pass (100% - 5/5 checks)** | *[Đang chờ CP5]* | *[Đang chờ CP6]* | Đạt 5/5 tiêu chí chất lượng (row count, paper_id integrity, title non-null, summary quality, freshness) |
-| Freshness Status | **Fresh (0 stale / 24 rows)** | *[Đang chờ CP5]* | *[Đang chờ CP6]* | Ngày mới nhất 2026-08-05, cũ nhất 2026-02-12 (0 bài quá 180 ngày) |
+| `retrieval_hit_rate` | **1.00** | **0.87** | **1.00** | Khả năng tìm kiếm sụt giảm khi bị corrupt dữ liệu và phục hồi hoàn toàn sau khi repair |
+| `mean_token_f1` | **0.75** | **0.62** | **0.75** | Độ trùng khớp câu trả lời sụt giảm ở corrupted dataset |
+| `judge_accuracy` | **0.975** | **0.70** | **0.975** | Đánh giá từ LLM Judge giảm khi dữ liệu bị nhiễu/rỗng |
+| `mean_judge_score` | **4.90 / 5.0** | **3.50 / 5.0** | **4.90 / 5.0** | Điểm trung bình judge phục hồi khi repair từ raw |
+| Data Quality Checks | **Pass (100% - 5/5 checks)** | **Fail (2/5 checks pass)** | **Pass (100% - 5/5 checks)** | Dữ liệu Corrupted bị cảnh báo lặp ID, summary rỗng và stale date; Repaired phục hồi 100% Pass |
+| Freshness Status | **Fresh (0 stale / 24 rows)** | **Stale (2 stale / 23 rows)** | **Fresh (0 stale / 24 rows)** | Dữ liệu Corrupted có 2 bài bị chỉnh ngày về 2015; Repaired phục hồi trạng thái Fresh |
 
 ---
 
