@@ -9,8 +9,8 @@
 - **Evaluated Samples:** 40
 - **Retrieval Hit Rate:** 1.0000 (100.00%)
 - **Mean Token F1 Score:** 0.7500
-- **LLM Judge Accuracy:** 0.9750 (97.50%)
-- **Mean LLM Judge Score:** 4.90 / 5.0
+- **LLM Judge Accuracy:** 1.0000 (100.00%)
+- **Mean LLM Judge Score:** 5.00 / 5.0
 
 ## 3. Data Quality Audit
 - **Overall Status:** PASS
