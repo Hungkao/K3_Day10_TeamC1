@@ -1,0 +1,32 @@
+{
+  "report_name": "repaired_quality_check",
+  "total_rows": 24,
+  "all_passed": true,
+  "checks": [
+    {
+      "check": "row_count",
+      "passed": true,
+      "details": "Total rows: 24"
+    },
+    {
+      "check": "paper_id_integrity",
+      "passed": true,
+      "details": "Null IDs: 0, Duplicate IDs: 0"
+    },
+    {
+      "check": "title_non_null",
+      "passed": true,
+      "details": "Null titles: 0"
+    },
+    {
+      "check": "summary_quality",
+      "passed": true,
+      "details": "Short/empty summaries (<10 chars): 0"
+    },
+    {
+      "check": "freshness_threshold",
+      "passed": true,
+      "details": "Stale rows (> 180 days): 0"
+    }
+  ]
+}
