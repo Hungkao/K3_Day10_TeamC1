@@ -5,7 +5,11 @@
 | Thông tin | Nội dung |
 | :--- | :--- |
 | **Họ và tên** | Nguyễn Hữu Khánh Tùng |
+<<<<<<< HEAD
 | **MSSV** | 2A202601781 |
+=======
+| **MSSV** | 01781 |
+>>>>>>> f0d4b53b1298ec9c4eb6ab524a85e48233a81e86
 | **Khóa/Lớp** | K3 |
 | **Tên nhóm** | Team C1 (K3_Day10_TeamC1) |
 | **Vai trò chính** | **Vai trò 3: RAG & Agent Owner** (Phụ trách Vector DB Indexing, ChromaDB, SentenceTransformers MiniLM, Search & Lookup, RAG Agent Integration) |
