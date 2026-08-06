@@ -23,6 +23,7 @@
 | **Ingestion Raw** | `src/ingestion/crossref.py`<br>- `parse_crossref_payload`<br>- `fetch_source_records`<br>- `load_raw_records` | Crossref REST API & `Settings` | - `data/raw/crossref_response.json` (238 KB)<br>- `data/raw/crossref_records.json` (57 KB) | **Hoàn thành (CP0)** |
 | **Data Cleaning** | `src/ingestion/cleaning.py`<br>- `build_clean_dataframe` | `list[PaperRecord]`, `run_date` | - `data/clean/papers_clean.csv` (100 KB)<br>- `data/clean/papers_clean.json` (108 KB) | **Hoàn thành (CP1)** |
 | **Data Lineage & Traceability** | Inspection & Index verification | `papers_clean.csv` | - Chroma Collection `papers-baseline` (24 docs)<br>- Traceability report | **Hoàn thành (CP2)** |
+| **Data Quality & Observability** | `src/observability/quality.py`<br>- `run_data_quality_checks`<br>- `build_freshness_report` | `papers_clean.csv`, `Settings` | - `data/quality/baseline_quality_check.json`<br>- `data/quality/freshness_report.json` | **Hoàn thành (CP3)** |
 | **Data Corruption & Repair** | `src/ingestion/corruption.py` | `papers_clean.csv` | - Corrupted clean dataframe<br>- Repaired dataset từ raw source | **Sẵn sàng (CP5 - CP6)** |
 
 ---
@@ -61,7 +62,16 @@
   4. Thực hiện `lookup(paper_id)` và `search()` thành công trên vector store.
 - **Bằng chứng xác minh**:
   - Build thành công collection `papers-baseline` chứa **24 vector documents**.
-  - `index.lookup("10.2118/234689-pa")` trả về đúng bài báo SafeRAG.
+### CHECKPOINT 3: Baseline End-to-End & Quality Observability (01:35 – 02:00)
+- **Công việc đã làm**:
+  1. Xác minh `data/raw/crossref_response.json` (238 KB) và `data/raw/crossref_records.json` (57 KB) nguyên vẹn.
+  2. So sánh raw count vs clean count: 24 raw records / 24 clean records (chênh lệch 0 bản ghi do tất cả 24 bản ghi đều đạt chuẩn).
+  3. Bảo vệ nguồn dữ liệu: Đảm bảo phase1 ưu tiên nạp từ đĩa qua `load_raw_records`, không re-fetch API làm thay đổi dữ liệu baseline.
+  4. Kiểm tra 16 trường clean schema, `age_days` (từ `2026-08-05` đến `2026-02-12`) và `text_for_embedding` không bị rỗng.
+  5. Triển khai engine kiểm tra chất lượng động `run_data_quality_checks` và `build_freshness_report` trong `src/observability/quality.py`.
+- **Bằng chứng xác minh**:
+  - `baseline_quality_check.json`: 100% PASS (5/5 checks: row_count, paper_id_integrity, title_non_null, summary_quality, freshness_threshold).
+  - `freshness_report.json`: `latest_published: 2026-08-05`, `oldest_published: 2026-02-12`, `stale_rows: 0 / 24`, `is_fresh: True`.
 
 ---
 
@@ -69,11 +79,6 @@
 
 ```
            ┌─────────────────────────────────────────┐
-           │ CP3: Baseline End-to-End Pipeline       │
-           │ - Khóa baseline artifacts & metrics     │
-           └────────────────────┬────────────────────┘
-                                │
-           ┌────────────────────▼────────────────────┐
            │ CP4: Break & Scenario Planning          │
            │ - Xác định kịch bản corrupt dữ liệu     │
            └────────────────────┬────────────────────┘
@@ -92,10 +97,6 @@
            │ - Đo mức phục hồi metrics & xuất report │
            └─────────────────────────────────────────┘
 ```
-
-#### CHECKPOINT 3: Baseline End-to-End & Báo cáo (01:35 – 02:00)
-- **Mục tiêu**: Đảm bảo pipeline baseline chạy thông suốt từ ingestion $\rightarrow$ clean $\rightarrow$ index $\rightarrow$ evaluate $\rightarrow$ quality/freshness report.
-- **Phần việc cá nhân**: Đảm bảo raw và clean artifacts giữ nguyên tính toàn vẹn, không fetch lại API làm thay đổi kết quả baseline.
 
 #### CHECKPOINT 4: Nghỉ & Chuẩn bị Corruption Scenario (02:00 – 02:15)
 - **Mục tiêu**: Chọn kịch bản corrupt sạch dữ liệu có chủ đích (ví dụ: làm rỗng summary một số bài, làm sai lệch ngày published, thêm noise vào tiêu đề).
@@ -176,14 +177,14 @@ Crossref API trả về dữ liệu thô dạng JSON hỗn hợp chứa nhiều 
 | `mean_token_f1` | *[Đang chờ CP3]* | *[Đang chờ CP5]* | *[Đang chờ CP6]* | Đánh giá độ trùng khớp câu trả lời |
 | `judge_accuracy` | *[Đang chờ CP3]* | *[Đang chờ CP5]* | *[Đang chờ CP6]* | Đánh giá từ LLM Judge |
 | `mean_judge_score` | *[Đang chờ CP3]* | *[Đang chờ CP5]* | *[Đang chờ CP6]* | Điểm trung bình judge |
-| Data Quality Checks | **Pass (100%)** | *[Đang chờ CP5]* | *[Đang chờ CP6]* | Khởi đầu 24/24 rows valid |
-| Freshness Status | **Fresh** | *[Đang chờ CP5]* | *[Đang chờ CP6]* | Dữ liệu cập nhật gần đây |
+| Data Quality Checks | **Pass (100% - 5/5 checks)** | *[Đang chờ CP5]* | *[Đang chờ CP6]* | Đạt 5/5 tiêu chí chất lượng (row count, paper_id integrity, title non-null, summary quality, freshness) |
+| Freshness Status | **Fresh (0 stale / 24 rows)** | *[Đang chờ CP5]* | *[Đang chờ CP6]* | Ngày mới nhất 2026-08-05, cũ nhất 2026-02-12 (0 bài quá 180 ngày) |
 
 ---
 
 ## 8. Cam kết cá nhân
 
-- [x] Nội dung báo cáo phản ánh đúng 100% công việc thực tế đã thực hiện tại CP0, CP1, CP2.
+- [x] Nội dung báo cáo phản ánh đúng 100% công việc thực tế đã thực hiện tại CP0, CP1, CP2, CP3.
 - [x] Đã kiểm tra các artifact dữ liệu thật tại `data/raw/` và `data/clean/`.
 - [x] Không lưu secret, API key hoặc thông tin nhạy cảm vào repository.
 - [x] Sẵn sàng phối hợp thực hiện các Checkpoint CP3, CP4, CP5, CP6 tiếp theo.
