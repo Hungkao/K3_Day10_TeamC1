@@ -98,15 +98,33 @@
            └─────────────────────────────────────────┘
 ```
 
-#### CHECKPOINT 4: Nghỉ & Chuẩn bị Corruption Scenario (02:00 – 02:15)
-- **Mục tiêu**: Chọn kịch bản corrupt sạch dữ liệu có chủ đích (ví dụ: làm rỗng summary một số bài, làm sai lệch ngày published, thêm noise vào tiêu đề).
+### CHECKPOINT 4: Chuẩn bị Kịch bản Corruption & Phục Hồi (02:00 – 02:15)
+- **Công việc đã làm**:
+  1. Xác định `data/raw/crossref_records.json` làm mốc điểm khôi phục nguồn nguyên bản (Raw Source Recovery Point).
+  2. Thiết kế 6 kịch bản gây lỗi dữ liệu sạch có chủ đích trong `src/ingestion/corruption.py`:
+     - Drop 3 bài báo mới nhất (`drop_latest_record`).
+     - Làm rỗng summary của 3 bài (`blank_summary`).
+     - Bơm nhiễu RAG noise vào summary của 2 bài (`inject_noise`).
+     - Truncate tiêu đề bài báo (`truncate_title`).
+     - Làm cũ ngày xuất bản `published` về năm 2015 (`stale_published_date`).
+     - Thêm 2 dòng bị trùng lặp (`duplicate_row`).
 
-#### CHECKPOINT 5: Corruption có kiểm soát & Đo Impact (02:15 – 03:15)
-- **Mục tiêu**: Implement `corrupt_clean_dataframe` trong `src/ingestion/corruption.py`.
-- **Output cần bàn giao**: `data/clean/papers_clean_corrupted.csv`, `data/clean/papers_clean_corrupted.json`, và file log `corruption_log.json`.
+### CHECKPOINT 5: Corruption có kiểm soát & Đo Impact (02:15 – 03:15)
+- **Công việc đã làm**:
+  1. Triển khai `corrupt_clean_dataframe(df, output_log_path)` trong `src/ingestion/corruption.py`.
+  2. Xuất dữ liệu lỗi ra `data/clean/papers_clean_corrupted.csv` và `data/clean/papers_clean_corrupted.json`.
+  3. Ghi file nhật ký biến đổi chi tiết tại `data/results/corruption_log.json`.
+  4. Chạy bộ Data Quality Checks trên dữ liệu lỗi:
+     - `paper_id_integrity`: **FAIL** (Phát hiện 2 IDs bị lặp).
+     - `summary_quality`: **FAIL** (Phát hiện 5 tóm tắt rỗng/ngắn < 10 chars).
+     - `freshness_threshold`: **FAIL** (Phát hiện 2 bài cũ quá 180 ngày).
+     - `all_passed`: **False** (Hệ thống Data Quality Observability cảnh báo lỗi dữ liệu thành công).
 
-#### CHECKPOINT 6: Repair từ Raw, Comparison & Final Demo (03:15 – 04:00)
-- **Mục tiêu**: Khôi phục dữ liệu sạch từ raw snapshot ban đầu (không sửa tay CSV corrupted), xuất `data/clean/papers_clean_repaired.csv` và hỗ trợ tổng hợp báo cáo so sánh 3 trạng thái.
+### CHECKPOINT 6: Repair từ Raw, Comparison & Review (03:15 – 04:00)
+- **Công việc đã làm**:
+  1. Thực hiện quy trình khôi phục dữ liệu sạch (Data Repair): Tái nạp snapshot gốc `data/raw/crossref_records.json` và chạy lại `build_clean_dataframe`.
+  2. Xuất file dữ liệu đã phục hồi ra `data/clean/papers_clean_repaired.csv` và `data/clean/papers_clean_repaired.json`.
+  3. Chạy lại Data Quality Checks trên tập Repaired: **100% PASS (5/5 checks)**, phục hồi hoàn toàn trạng thái dữ liệu sạch.
 
 ---
 
@@ -177,17 +195,17 @@ Crossref API trả về dữ liệu thô dạng JSON hỗn hợp chứa nhiều 
 | `mean_token_f1` | *[Đang chờ CP3]* | *[Đang chờ CP5]* | *[Đang chờ CP6]* | Đánh giá độ trùng khớp câu trả lời |
 | `judge_accuracy` | *[Đang chờ CP3]* | *[Đang chờ CP5]* | *[Đang chờ CP6]* | Đánh giá từ LLM Judge |
 | `mean_judge_score` | *[Đang chờ CP3]* | *[Đang chờ CP5]* | *[Đang chờ CP6]* | Điểm trung bình judge |
-| Data Quality Checks | **Pass (100% - 5/5 checks)** | *[Đang chờ CP5]* | *[Đang chờ CP6]* | Đạt 5/5 tiêu chí chất lượng (row count, paper_id integrity, title non-null, summary quality, freshness) |
-| Freshness Status | **Fresh (0 stale / 24 rows)** | *[Đang chờ CP5]* | *[Đang chờ CP6]* | Ngày mới nhất 2026-08-05, cũ nhất 2026-02-12 (0 bài quá 180 ngày) |
+| Data Quality Checks | **Pass (100% - 5/5 checks)** | **Fail (2/5 checks pass)** | **Pass (100% - 5/5 checks)** | Dữ liệu Corrupted bị cảnh báo lỗi lặp ID, summary ngắn và stale date; Repaired khôi phục 100% Pass |
+| Freshness Status | **Fresh (0 stale / 24 rows)** | **Stale (2 stale / 23 rows)** | **Fresh (0 stale / 24 rows)** | Dữ liệu Corrupted có 2 bài bị chỉnh ngày về 2015; Repaired phục hồi trạng thái Fresh |
 
 ---
 
 ## 8. Cam kết cá nhân
 
-- [x] Nội dung báo cáo phản ánh đúng 100% công việc thực tế đã thực hiện tại CP0, CP1, CP2, CP3.
-- [x] Đã kiểm tra các artifact dữ liệu thật tại `data/raw/` và `data/clean/`.
+- [x] Nội dung báo cáo phản ánh đúng 100% công việc thực tế đã thực hiện tại CP0, CP1, CP2, CP3, CP4, CP5, CP6.
+- [x] Đã kiểm tra các artifact dữ liệu thật tại `data/raw/`, `data/clean/`, `data/results/` và `data/quality/`.
 - [x] Không lưu secret, API key hoặc thông tin nhạy cảm vào repository.
-- [x] Sẵn sàng phối hợp thực hiện các Checkpoint CP3, CP4, CP5, CP6 tiếp theo.
+- [x] Hoàn thành toàn bộ quy trình Data Foundation, Ingestion, Cleaning, Corruption & Repair.
 
 **Người báo cáo:** Nguyễn Văn Phong (MSSV: 2A202601087)  
 **Ngày xác nhận:** 2026-08-06
