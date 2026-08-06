@@ -4,9 +4,9 @@
 
 | Thông tin | Nội dung |
 | --- | --- |
-| Họ và tên | Thành viên Nhóm C1 |
-| MSSV | Lab AITC Team C1 |
-| Khóa/Lớp | K3 / K4 |
+| Họ và tên | Nguyễn Văn Phong |
+| MSSV | 2A202601087 |
+| Khóa/Lớp | K3 |
 | Tên nhóm | Team C1 |
 | Vai trò chính | Data Foundation & Recovery Owner (`ingestion`, `cleaning`, `corruption`, `repair`) |
 | Repository | `Hungkao/K3_Day10_TeamC1` |
@@ -188,5 +188,5 @@ Crossref API trả về dữ liệu thô dạng JSON hỗn hợp chứa nhiều 
 - [x] Không lưu secret, API key hoặc thông tin nhạy cảm vào repository.
 - [x] Sẵn sàng phối hợp thực hiện các Checkpoint CP3, CP4, CP5, CP6 tiếp theo.
 
-**Người báo cáo:** Thành viên Team C1 (Data Ingestion & Cleaning Owner)  
+**Người báo cáo:** Nguyễn Văn Phong (MSSV: 2A202601087)  
 **Ngày xác nhận:** 2026-08-06
