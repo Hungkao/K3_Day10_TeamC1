@@ -9,9 +9,9 @@
 | Metric | Baseline (Clean) | Corrupted (Lỗi) | Repaired (Đã sửa) | Delta (Repaired - Corrupted) |
 | :--- | :-: | :-: | :-: | :-: |
 | **Retrieval Hit Rate** | 100.00% | 70.00% | 100.00% | 30.00% |
-| **Mean Token F1** | 75.00% | 70.35% | 75.00% | 4.65% |
-| **LLM Judge Accuracy** | 97.50% | 70.00% | 72.50% | 2.50% |
-| **Mean LLM Judge Score** | 4.90 / 5 | 4.03 / 5 | 3.90 / 5 | +-0.13 |
+| **Mean Token F1** | 75.00% | 57.85% | 75.00% | 17.15% |
+| **LLM Judge Accuracy** | 100.00% | 57.50% | 72.50% | 15.00% |
+| **Mean LLM Judge Score** | 5.00 / 5 | 3.45 / 5 | 3.90 / 5 | +0.45 |
 
 ---
 
